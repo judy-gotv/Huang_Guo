@@ -1,5 +1,7 @@
 <h1><span style="color: red;">转载来自：HGhub 源库，请点击小星星</span></h1>
 
+> 同步镜像：本仓库为 [AIRzZ90/study-materials-fork](https://github.com/AIRzZ90/study-materials-fork)（源头 [Minireel/HGhub](https://github.com/Minireel/HGhub)）的同步副本。前端静态预览镜像：`docker pull ghcr.io/judy-gotv/huang_guo:latest`（仅界面预览，完整应用请用 Release 里的 macOS / iOS 包）。许可证 PolyForm Noncommercial 1.0.0，禁止商业用途。
+
 # HGhub
 （FROK不点小星星的人=看黄果也打不出来-哈哈）
 

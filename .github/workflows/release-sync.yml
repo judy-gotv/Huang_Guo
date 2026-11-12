@@ -1,0 +1,47 @@
+# Author: Passwd Word
+# 手动一次性同步：把上游 AIRzZ90/study-materials-fork 的 Release
+#（标题、正文、附件）原样复制到本仓库。已存在的 Release 会被更新，
+# 缺失的附件用 --clobber 补齐；最后按上游把 latest 指向同一 tag。
+# 注意：不要在 build-macos / build-ios 构建还在跑的时候触发，
+# 它们跑完也会往这两个 Release 里写产物，会互相覆盖。
+name: Sync releases from upstream
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Copy upstream releases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync v1.2.1-macos and v1.2.1-ios
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM: AIRzZ90/study-materials-fork
+        run: |
+          set -euo pipefail
+          for TAG in v1.2.1-macos v1.2.1-ios; do
+            echo "== $TAG =="
+            rm -rf "/tmp/$TAG" "/tmp/$TAG-body.txt"
+            mkdir -p "/tmp/$TAG"
+            gh api "repos/$UPSTREAM/releases/tags/$TAG" --jq '.body' > "/tmp/$TAG-body.txt"
+            TITLE="$(gh api "repos/$UPSTREAM/releases/tags/$TAG" --jq '.name')"
+            gh release download "$TAG" --repo "$UPSTREAM" --dir "/tmp/$TAG"
+            ls -lh "/tmp/$TAG"
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              gh release edit "$TAG" --title "$TITLE" --notes-file "/tmp/$TAG-body.txt"
+              gh release upload "$TAG" "/tmp/$TAG"/* --clobber
+            else
+              gh release create "$TAG" "/tmp/$TAG"/* --title "$TITLE" --notes-file "/tmp/$TAG-body.txt"
+            fi
+          done
+          LATEST="$(gh api "repos/$UPSTREAM/releases/latest" --jq '.tag_name')"
+          echo "upstream latest: $LATEST"
+          gh release edit "$LATEST" --latest
+          echo "--- dest releases ---"
+          gh release list --limit 10
